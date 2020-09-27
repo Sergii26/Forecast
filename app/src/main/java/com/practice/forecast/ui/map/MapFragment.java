@@ -1,9 +1,6 @@
 package com.practice.forecast.ui.map;
 
 import android.Manifest;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -21,25 +18,26 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.practice.forecast.R;
-import com.practice.forecast.ui.arch.fragments.MvvmFragment;
+import com.practice.forecast.ui.arch.mvvm.MvvmFragment;
 import com.practice.weathermodel.logger.ILog;
 import com.practice.weathermodel.logger.Logger;
-import com.practice.weathermodel.pojo.City;
+import com.practice.weathermodel.receiver.NetworkConnectionReceiver;
 
 import java.util.Objects;
 
 import javax.inject.Inject;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.subjects.BehaviorSubject;
 
 public class MapFragment extends MvvmFragment<MapContract.Host> implements OnMapReadyCallback, GoogleMap.OnCameraMoveListener {
-
     private final static String WEATHER_API_ZOOM_SIZE = "17";
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
 
@@ -49,30 +47,18 @@ public class MapFragment extends MvvmFragment<MapContract.Host> implements OnMap
     private RecyclerView rvCities;
     private MapContract.BaseMapViewModel viewModel;
     private final BehaviorSubject<String> coordinatesObservable = BehaviorSubject.createDefault("");
-    private final CityHandler handler = new CityHandler() {
+    private final CompositeDisposable disposable = new CompositeDisposable();
+    private final CityListAdapter adapter = new CityListAdapter();
+    private final NetworkConnectionReceiver receiver = new NetworkConnectionReceiver();
+    private final OnBackPressedCallback callback = new OnBackPressedCallback(true) {
         @Override
-        public void onCityClick(City city) {
-            logger.log("MapFragment handler onCityClick()");
-            viewModel.saveLocation(googleMap.getProjection().getVisibleRegion().latLngBounds.getCenter());
-            if (hasCallBack()) {
-                getCallBack().showDetailFragment(city.getId(), city.getName());
-            }
-        }
-    };
-    private final CityListAdapter adapter = new CityListAdapter(handler);
-    private final BroadcastReceiver networkConnectionReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            viewModel.onConnectivityChange();
+        public void handleOnBackPressed() {
+            Objects.requireNonNull(getActivity()).finish();
         }
     };
 
     @Inject
     ViewModelProvider.Factory viewModelFactory;
-
-    public static MapFragment newInstance() {
-        return new MapFragment();
-    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -112,7 +98,7 @@ public class MapFragment extends MvvmFragment<MapContract.Host> implements OnMap
                 setCameraPosition(location);
             }
         });
-        if(!isGrantedPermission()){
+        if (!isGrantedPermission()) {
             requestPermission();
         }
         viewModel.getConnectivityState().observe(getViewLifecycleOwner(), isConnected -> {
@@ -124,14 +110,24 @@ public class MapFragment extends MvvmFragment<MapContract.Host> implements OnMap
                 mapView.setVisibility(View.GONE);
             }
         });
+        viewModel.onConnectivityChange(receiver.getConnectivityChangeObservable());
         viewModel.showCities(coordinatesObservable);
+        requireActivity().getOnBackPressedDispatcher().addCallback(this, callback);
     }
 
     @Override
     public void onStart() {
         super.onStart();
         mapView.onStart();
-
+        if (disposable.size() == 0) {
+            disposable.add(adapter.getClicksObservable().subscribe(city -> {
+                logger.log("MapFragment clickObservable() onSuccess");
+                viewModel.saveLocation(googleMap.getProjection().getVisibleRegion().latLngBounds.getCenter());
+                if(hasCallBack()) {
+                    getCallBack().openDetailFragment(city.getName(), city.getId());
+                }
+            }, throwable -> logger.log("MapFragment clickObservable() onError: " + throwable.getMessage())));
+        }
     }
 
     @Override
@@ -139,13 +135,20 @@ public class MapFragment extends MvvmFragment<MapContract.Host> implements OnMap
         super.onResume();
         mapView.onResume();
         registerReceiver();
+
     }
 
     @Override
     public void onPause() {
         super.onPause();
         mapView.onPause();
-        requireActivity().unregisterReceiver(networkConnectionReceiver);
+        requireActivity().unregisterReceiver(receiver);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        disposable.clear();
     }
 
     @Override
@@ -207,7 +210,7 @@ public class MapFragment extends MvvmFragment<MapContract.Host> implements OnMap
 
     private void registerReceiver() {
         IntentFilter filter = new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE");
-        requireActivity().registerReceiver(networkConnectionReceiver, filter);
+        requireActivity().registerReceiver(receiver, filter);
     }
 
     @Override

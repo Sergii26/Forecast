@@ -1,4 +1,4 @@
-package com.practice.forecast.ui.arch.fragments;
+package com.practice.forecast.ui.arch.mvvm;
 
 import android.content.Context;
 
@@ -8,7 +8,7 @@ import java.lang.reflect.ParameterizedType;
 
 import androidx.fragment.app.Fragment;
 
-public class MvvmFragment <Host extends Contract.Host> extends Fragment {
+public class MvvmFragment<Host extends Contract.Host> extends Fragment {
     /**
      * the fragment callBack
      */
@@ -54,3 +54,4 @@ public class MvvmFragment <Host extends Contract.Host> extends Fragment {
         this.callBack = null;
     }
 }
+

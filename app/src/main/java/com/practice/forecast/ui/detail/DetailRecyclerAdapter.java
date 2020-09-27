@@ -28,11 +28,6 @@ public class DetailRecyclerAdapter extends RecyclerView.Adapter<DetailRecyclerAd
     }
 
     public void setCities(List<City> weatherList) {
-        Log.i("MyLog", "DetailRecyclerAdapter setCities() size: " + weatherList.size());
-        for (City city:weatherList){
-            Log.i("MyLogIcon", "DetailRecyclerAdapter setCities() icon: " + city.getWeather().get(0).getIcon());
-            Log.i("MyLogIcon", "DetailRecyclerAdapter setCities() new Field: " + city.getDtTxt());
-        }
         City city = new City();
         city.setDt(0);
         Main main = new Main();
@@ -54,14 +49,12 @@ public class DetailRecyclerAdapter extends RecyclerView.Adapter<DetailRecyclerAd
         weatherList.add(0, city);
         this.weatherList.clear();
         this.weatherList.addAll(weatherList);
-        Log.i("MyLog", "DetailRecyclerAdapter setCities() size after adding label: " + weatherList.size());
         notifyDataSetChanged();
     }
 
     @NonNull
     @Override
     public DetailViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        Log.i("MyLog", "DetailRecyclerAdapter onCreateViewHolder() ");
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         WeatherItemBinding binding = DataBindingUtil.inflate(inflater, R.layout.weather_item, parent, false);
         return new DetailViewHolder(binding);
@@ -69,13 +62,11 @@ public class DetailRecyclerAdapter extends RecyclerView.Adapter<DetailRecyclerAd
 
     @Override
     public void onBindViewHolder(@NonNull DetailViewHolder holder, int position) {
-        Log.i("MyLog", "DetailRecyclerAdapter onBindViewHolder() ");
         holder.bindView(weatherList.get(position));
     }
 
     @Override
     public int getItemCount() {
-        Log.i("MyLog", "DetailRecyclerAdapter getItemCount() ");
         return weatherList.size();
     }
 
@@ -87,12 +78,10 @@ public class DetailRecyclerAdapter extends RecyclerView.Adapter<DetailRecyclerAd
         public DetailViewHolder(@NonNull WeatherItemBinding binding) {
 
             super(binding.getRoot());
-            Log.i("MyLog", "DetailViewHolder constr() ");
             this.binding = binding;
         }
 
         public void bindView(City city){
-            Log.i("MyLog", "DetailViewHolder bindView() ");
             binding.setCity(city);
             binding.executePendingBindings();
         }

@@ -12,4 +12,5 @@
     <string name="humidity_label">Humidity, %</string>
     <string name="rain_label">Rain, mm/3h</string>
     <string name="permission_denied">Permission is denied. Without it permission the application can`t find you.</string>
+    <string name="detail_error_state">Error. Try again later.</string>
 </resources>

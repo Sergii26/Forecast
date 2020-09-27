@@ -4,14 +4,13 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LinearInterpolator;
 import android.widget.TextView;
 
 import com.practice.forecast.R;
-import com.practice.forecast.ui.arch.fragments.MvvmFragment;
+import com.practice.forecast.ui.arch.mvvm.MvvmFragment;
 
 import javax.inject.Inject;
 
@@ -23,11 +22,6 @@ public class SplashFragment extends MvvmFragment<SplashContract.Host> {
     private SplashContract.BaseSplashViewModel viewModel;
     @Inject
     ViewModelProvider.Factory viewModelFactory;
-
-
-    public static SplashFragment newInstance() {
-        return new SplashFragment();
-    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -49,19 +43,13 @@ public class SplashFragment extends MvvmFragment<SplashContract.Host> {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this, viewModelFactory).get(SplashViewModel.class);
         viewModel.getIsReady().observe(getViewLifecycleOwner(), aBoolean -> {
-            if(aBoolean) {
-                openMapFragment();
+            if(aBoolean && hasCallBack()) {
+                getCallBack().openMapFragment();
             }
         });
         viewModel.startTimer();
         final TextView splash = view.findViewById(R.id.tvAppName);
         splash.startAnimation(getAnimation());
-    }
-
-    private void openMapFragment(){
-        if(hasCallBack()){
-            getCallBack().showMapFragment();
-        }
     }
 
     private Animation getAnimation(){

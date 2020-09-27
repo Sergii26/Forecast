@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
-import io.reactivex.Single;
+import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
@@ -28,8 +28,7 @@ public class SplashViewModel extends ViewModel implements SplashContract.BaseSpl
 
     @Override
     public void startTimer(){
-        compositeDisposable.add(Single.just("")
-        .delay(1, TimeUnit.SECONDS)
+        compositeDisposable.add(Observable.timer(1, TimeUnit.SECONDS)
         .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(s -> isReady.setValue(true),

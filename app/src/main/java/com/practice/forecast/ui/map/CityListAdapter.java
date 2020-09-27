@@ -13,14 +13,22 @@ import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.RecyclerView;
+import io.reactivex.Observable;
+import io.reactivex.subjects.PublishSubject;
 
 public class CityListAdapter extends RecyclerView.Adapter<CityListAdapter.CityViewHolder> {
 
     private final List<City> cities = new ArrayList<>();
-    private final CityHandler handler;
+    private final PublishSubject<City> itemViewClickSubject = PublishSubject.create();
+    private final CityHandler handler = new CityHandler() {
+        @Override
+        public void onCityClick(City city) {
+            itemViewClickSubject.onNext(city);
+        }
+    };
 
-    public CityListAdapter(CityHandler handler) {
-        this.handler = handler;
+    public Observable<City> getClicksObservable() {
+        return itemViewClickSubject;
     }
 
     public List<City> getCities() {

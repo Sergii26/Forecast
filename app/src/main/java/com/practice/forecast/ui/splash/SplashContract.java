@@ -11,6 +11,6 @@ public interface SplashContract {
     }
 
     interface Host extends Contract.Host {
-        void showMapFragment();
+        void openMapFragment();
     }
 }

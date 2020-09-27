@@ -7,6 +7,7 @@ import com.practice.weathermodel.pojo.City;
 import java.util.List;
 
 import androidx.lifecycle.LiveData;
+import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 
 public interface MapContract {
@@ -17,7 +18,7 @@ public interface MapContract {
 
         LiveData<Boolean> getConnectivityState();
 
-        void onConnectivityChange();
+        void onConnectivityChange(Observable<Integer> connectivityChangeObservable);
 
         void saveLocation(LatLng location);
 
@@ -27,6 +28,6 @@ public interface MapContract {
     }
 
     interface Host extends Contract.Host {
-        void showDetailFragment(int cityId, String cityName);
+        void openDetailFragment(String cityName, int cityId);
     }
 }

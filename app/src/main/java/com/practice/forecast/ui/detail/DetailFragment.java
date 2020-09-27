@@ -1,12 +1,16 @@
 package com.practice.forecast.ui.detail;
 
+import android.animation.ObjectAnimator;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.practice.forecast.R;
 import com.practice.forecast.databinding.FragmentDetailBinding;
+import com.practice.forecast.ui.arch.mvi.MviFragment;
 import com.practice.weathermodel.logger.ILog;
 import com.practice.weathermodel.logger.Logger;
 import com.practice.weathermodel.pojo.City;
@@ -15,22 +19,22 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import static androidx.recyclerview.widget.RecyclerView.HORIZONTAL;
 
-public class DetailFragment extends Fragment {
+public class DetailFragment extends MviFragment<DetailScreenState, DetailContract.Host> implements DetailContract.View  {
 
     public static final String KEY_CITY_ID = "key_city_id";
     public static final String KEY_CITY_NAME = "city_name";
 
+    private ProgressBar progressLoading;
     private final ILog logger = Logger.withTag("MyLog");
     private DetailContract.BaseDetailViewModel viewModel;
     private FragmentDetailBinding binding;
@@ -38,15 +42,14 @@ public class DetailFragment extends Fragment {
     private RecyclerView rvDetail;
     @Inject
     ViewModelProvider.Factory viewModelFactory;
-
-    public static DetailFragment newInstance(int cityId, String cityName){
-        final Bundle b = new Bundle();
-        b.putInt(KEY_CITY_ID, cityId);
-        b.putString(KEY_CITY_NAME, cityName);
-        final DetailFragment f = new DetailFragment();
-        f.setArguments(b);
-        return f;
-    }
+    private final OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+        @Override
+        public void handleOnBackPressed() {
+            if(hasCallBack()) {
+                getCallBack().backToMapFragment();
+            }
+        }
+    };
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -68,20 +71,38 @@ public class DetailFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        progressLoading = view.findViewById(R.id.progress_loading);
         rvDetail = view.findViewById(R.id.rvWeather);
         rvDetail.setAdapter(adapter);
         rvDetail.setLayoutManager(new LinearLayoutManager(getContext(), HORIZONTAL, false));
+        binding.setCityName(getArguments().getString(KEY_CITY_NAME));
         viewModel = new ViewModelProvider(this, viewModelFactory).get(DetailViewModel.class);
         viewModel.downloadCity(String.valueOf(getArguments().getInt(KEY_CITY_ID)));
-        binding.setCityName(getArguments().getString(KEY_CITY_NAME));
-        viewModel.getCityObservable().observe(getViewLifecycleOwner(), new Observer<List<City>>() {
-            @Override
-            public void onChanged(List<City> cities) {
-                logger.log("DetailFragment onCities change");
-                binding.setCity(cities.get(0));
-                adapter.setCities(cities);
-            }
+        viewModel.getStateHolderObservable().observe(getViewLifecycleOwner(), detailScreenState -> {
+            logger.log("DetailFragment onStateChange()");
+            detailScreenState.visit(DetailFragment.this);
         });
+        requireActivity().getOnBackPressedDispatcher().addCallback(this, callback);
     }
 
+    @Override
+    public void showProgress() {
+        progressLoading.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void hideProgress() {
+        progressLoading.setVisibility(View.INVISIBLE);
+    }
+
+    @Override
+    public void setListToAdapter(List<City> weatherLIst) {
+        binding.setCity(weatherLIst.get(0));
+        adapter.setCities(weatherLIst);
+    }
+
+    @Override
+    public void showError() {
+        Toast.makeText(getActivity(), R.string.detail_error_state, Toast.LENGTH_SHORT).show();
+    }
 }

@@ -1,7 +1,6 @@
 package com.practice.forecast.ui.map;
 
 import com.google.android.gms.maps.model.LatLng;
-
 import com.practice.weathermodel.location_api.LocationSupplier;
 import com.practice.weathermodel.logger.ILog;
 import com.practice.weathermodel.network_api.NetworkClient;
@@ -15,12 +14,15 @@ import java.util.concurrent.TimeUnit;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.BehaviorSubject;
 
 public class WeatherMapViewModel extends ViewModel implements MapContract.BaseMapViewModel {
+    private final static String EMPTY_STRING = "";
+
     private final MutableLiveData<List<City>> cities = new MutableLiveData<>();
     private final MutableLiveData<LatLng> currentLocation = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isConnected = new MutableLiveData<>();
@@ -55,8 +57,10 @@ public class WeatherMapViewModel extends ViewModel implements MapContract.BaseMa
     }
 
     @Override
-    public void onConnectivityChange() {
-        isConnected.setValue(utils.isConnectedToNetwork());
+    public void onConnectivityChange(Observable<Integer> connectivityChangeObservable) {
+        compositeDisposable.add(connectivityChangeObservable.subscribe(integer -> isConnected.setValue(utils.isConnectedToNetwork()),
+                throwable -> logger.log("WeatherMapViewModel onConnectivityChange() onError: " + throwable.getMessage())));
+
     }
 
     @Override
@@ -64,7 +68,7 @@ public class WeatherMapViewModel extends ViewModel implements MapContract.BaseMa
         if(!hasPermission){
             return;
         }
-        if (prefs.getCoordinates().equals("")) {
+        if (prefs.getCoordinates().equals(EMPTY_STRING)) {
                 compositeDisposable.add(locationClient.getLastLocationObservable()
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())

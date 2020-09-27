@@ -15,6 +15,8 @@ public class DetailBindingAdapter {
     private static final String TIME_PATTERN = "HH:mm";
     private static final String DAY_PATTERN = "EEEE";
 
+    private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat();
+
     @BindingAdapter("android:src")
     public static void setImageResource(ImageView imageView, String icon) {
         if (icon != null) {
@@ -97,9 +99,9 @@ public class DetailBindingAdapter {
         if (millis == 0) {
             view.setText(labelResource);
         } else {
-            SimpleDateFormat sdf = new SimpleDateFormat(timePattern);
-            sdf.format(new Date(millis * 1000L));
-            view.setText(sdf.format(new Date(millis * 1000L)));
+            SIMPLE_DATE_FORMAT.applyPattern(timePattern);
+            SIMPLE_DATE_FORMAT.format(new Date(millis * 1000L));
+            view.setText(SIMPLE_DATE_FORMAT.format(new Date(millis * 1000L)));
         }
     }
 
