@@ -4,9 +4,13 @@ import com.practice.weathermodel.logger.ILog;
 import com.practice.weathermodel.network_api.ApiClient;
 import com.practice.weathermodel.network_api.NetworkClient;
 import com.practice.weathermodel.pojo.City;
+import com.practice.weathermodel.pojo.Main;
+import com.practice.weathermodel.pojo.Rain;
+import com.practice.weathermodel.pojo.Weather;
+import com.practice.weathermodel.pojo.Wind;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -41,11 +45,35 @@ public class DetailViewModel extends ViewModel implements DetailContract.BaseDet
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(response -> {
-                    stateHolder.setValue(DetailScreenState.createSetDataState(response.getCities()));
+                    final List<City> cities = response.getCities();
+                    cities.add(0, getLabelCity());
+                    stateHolder.setValue(DetailScreenState.createSetDataState(cities));
                 }, throwable -> {
                     stateHolder.setValue(DetailScreenState.createErrorState(throwable));
                     logger.log("DetailViewModel downloadCity() error: " + throwable.getMessage());
                 }));
+    }
+
+    private City getLabelCity(){
+        City city = new City();
+        city.setDt(0);
+        Main main = new Main();
+        Weather weather = new Weather();
+        weather.setIcon("label");
+        Wind wind = new Wind();
+        wind.setSpeed(-1);
+        List<Weather> weatherListForCity = new ArrayList<>();
+        weatherListForCity.add(0, weather);
+        city.setWeather(weatherListForCity);
+        city.setWind(wind);
+        main.setTemp(-100);
+        main.setPressure(-1);
+        main.setHumidity(-1);
+        Rain rain = new Rain();
+        rain.set3h(-1);
+        city.setRain(rain);
+        city.setMain(main);
+        return city;
     }
 
     @Override

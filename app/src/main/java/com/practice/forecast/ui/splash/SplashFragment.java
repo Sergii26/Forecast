@@ -30,6 +30,7 @@ public class SplashFragment extends MvvmFragment<SplashContract.Host> {
                 .splashFragmentModule(new SplashFragmentModule())
                 .build()
                 .injectSplashFragment(this);
+        viewModel = new ViewModelProvider(this, viewModelFactory).get(SplashViewModel.class);
     }
 
     @Nullable
@@ -41,7 +42,6 @@ public class SplashFragment extends MvvmFragment<SplashContract.Host> {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        viewModel = new ViewModelProvider(this, viewModelFactory).get(SplashViewModel.class);
         viewModel.getIsReady().observe(getViewLifecycleOwner(), aBoolean -> {
             if(aBoolean && hasCallBack()) {
                 getCallBack().openMapFragment();

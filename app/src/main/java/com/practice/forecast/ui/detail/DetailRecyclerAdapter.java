@@ -28,25 +28,6 @@ public class DetailRecyclerAdapter extends RecyclerView.Adapter<DetailRecyclerAd
     }
 
     public void setCities(List<City> weatherList) {
-        City city = new City();
-        city.setDt(0);
-        Main main = new Main();
-        Weather weather = new Weather();
-        weather.setIcon("label");
-        Wind wind = new Wind();
-        wind.setSpeed(-1);
-        List<Weather> weatherListForCity = new ArrayList<>();
-        weatherListForCity.add(0, weather);
-        city.setWeather(weatherListForCity);
-        city.setWind(wind);
-        main.setTemp(-100);
-        main.setPressure(-1);
-        main.setHumidity(-1);
-        Rain rain = new Rain();
-        rain.set3h(-1);
-        city.setRain(rain);
-        city.setMain(main);
-        weatherList.add(0, city);
         this.weatherList.clear();
         this.weatherList.addAll(weatherList);
         notifyDataSetChanged();

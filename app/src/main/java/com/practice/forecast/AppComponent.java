@@ -1,9 +1,9 @@
 package com.practice.forecast;
 
-
 import com.practice.forecast.ui.detail.DetailFragmentModule;
 import com.practice.forecast.ui.map.MapFragmentModule;
 import com.practice.forecast.ui.splash.SplashFragmentModule;
+
 import com.practice.weathermodel.location_api.LocationSupplier;
 import com.practice.weathermodel.network_api.NetworkClient;
 import com.practice.weathermodel.prefs.Prefs;

@@ -64,6 +64,7 @@ public class MapFragment extends MvvmFragment<MapContract.Host> implements OnMap
                 .mapFragmentModule(new MapFragmentModule())
                 .build()
                 .injectMapFragment(this);
+        viewModel = new ViewModelProvider(this, viewModelFactory).get(WeatherMapViewModel.class);
     }
 
     @Nullable
@@ -78,17 +79,16 @@ public class MapFragment extends MvvmFragment<MapContract.Host> implements OnMap
         mapView = view.findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         rvCities = view.findViewById(R.id.rvCities);
-        rvCities.setAdapter(adapter);
-        if (Objects.requireNonNull(getActivity()).getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+        if (requireActivity().getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
             logger.log("MapFragment onViewCreated() portrait orientation");
             rvCities.setLayoutManager(new GridLayoutManager(getContext(), 3, RecyclerView.HORIZONTAL, false));
         }
-        if (Objects.requireNonNull(getActivity()).getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        if (requireActivity().getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             logger.log("MapFragment onViewCreated() landscape orientation");
             rvCities.setLayoutManager(new GridLayoutManager(getContext(), 2, RecyclerView.HORIZONTAL, false));
         }
+        rvCities.setAdapter(adapter);
         initMap();
-        viewModel = new ViewModelProvider(this, viewModelFactory).get(WeatherMapViewModel.class);
         viewModel.getCitiesWeather().observe(getViewLifecycleOwner(), adapter::setCities);
         viewModel.getCurrentLocation().observe(getViewLifecycleOwner(), location -> {
             if (googleMap != null && location != null) {
@@ -108,7 +108,7 @@ public class MapFragment extends MvvmFragment<MapContract.Host> implements OnMap
             }
         });
         viewModel.showCities(coordinatesObservable);
-        requireActivity().getOnBackPressedDispatcher().addCallback(this, callback);
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), callback);
         getViewLifecycleOwner().getLifecycle().addObserver(viewModel);
     }
 
@@ -183,7 +183,7 @@ public class MapFragment extends MvvmFragment<MapContract.Host> implements OnMap
 
     public void initMap() {
         try {
-            MapsInitializer.initialize(Objects.requireNonNull(getContext()));
+            MapsInitializer.initialize(requireContext());
         } catch (Exception e) {
             logger.log("MapFragment initMap() error: " + e.getMessage());
         }

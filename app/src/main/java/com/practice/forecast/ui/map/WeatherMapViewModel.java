@@ -1,6 +1,6 @@
 package com.practice.forecast.ui.map;
 
-import android.content.IntentFilter;
+import android.location.Location;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.practice.forecast.App;
@@ -38,16 +38,16 @@ public class WeatherMapViewModel extends ViewModel implements MapContract.BaseMa
     private final ILog logger;
     private final Prefs prefs;
     private final Utils utils;
-    private final NetworkReceiver receiver;
+    private final NetworkReceiver networkStatusChangeReceiver;
 
     public WeatherMapViewModel(NetworkClient networkClient, LocationSupplier locationClient, ILog logger,
-                               Prefs prefs, Utils utils, NetworkReceiver receiver) {
+                               Prefs prefs, Utils utils, NetworkReceiver networkStatusChangeReceiver) {
         this.networkClient = networkClient;
         this.locationClient = locationClient;
         this.logger = logger;
         this.prefs = prefs;
         this.utils = utils;
-        this.receiver = receiver;
+        this.networkStatusChangeReceiver = networkStatusChangeReceiver;
     }
 
     @Override
@@ -67,24 +67,29 @@ public class WeatherMapViewModel extends ViewModel implements MapContract.BaseMa
 
 
     private void subscribeToConnectivityChange() {
-        connectivityDisposable.add(receiver.getConnectivityChangeObservable().subscribe(integer -> isConnected.setValue(utils.isConnectedToNetwork()),
+        connectivityDisposable.add(networkStatusChangeReceiver.getStatusChangeObservable().subscribe(integer -> isConnected.setValue(utils.isConnectedToNetwork()),
                 throwable -> logger.log("WeatherMapViewModel onConnectivityChange() onError: " + throwable.getMessage())));
     }
 
     @Override
     public void findCurrentLocation(boolean hasPermission) {
-        if(!hasPermission){
+        if (!hasPermission) {
             return;
         }
         if (EMPTY_STRING.equals(prefs.getCoordinates())) {
-                compositeDisposable.add(locationClient.getLastLocationObservable()
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(location -> {
-                                    logger.log("WeatherMapViewModel findCurrentLocation() onSuccess");
-                                    currentLocation.setValue(new LatLng(location.getLatitude(), location.getLongitude()));
-                                }, throwable -> logger.log("WeatherMapViewModel findCurrentLocation() onError: " + throwable.getMessage()),
-                                () -> logger.log("WeatherMapViewModel findCurrentLocation() onComplete")));
+            compositeDisposable.add(locationClient.getLastLocationObservable()
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(result -> {
+                        if (result.isFail()) {
+                            logger.log("WeatherMapViewModel findCurrentLocation() result has error: " + result.getError().getMessage());
+                        } else {
+                            logger.log("WeatherMapViewModel findCurrentLocation() onSuccess");
+                            final Location location = result.getData();
+                            currentLocation.setValue(new LatLng(location.getLatitude(), location.getLongitude()));
+                        }
+                    }, throwable -> logger.log("WeatherMapViewModel findCurrentLocation() onError: " + throwable.getMessage()),
+                            () -> logger.log("WeatherMapViewModel findCurrentLocation() onComplete")));
         } else {
             logger.log("WeatherMapViewModel findCurrentLocation() get location from prefs");
             currentLocation.setValue(convertCoordinatesToLatLng(prefs.getCoordinates()));
@@ -98,7 +103,6 @@ public class WeatherMapViewModel extends ViewModel implements MapContract.BaseMa
                 .subscribe(response -> {
                     if (response != null) {
                         logger.log("ViewModel cities are loaded");
-
                         cities.setValue(response.getCities());
                     }
                 }, throwable -> logger.log("ViewModel cities are NOT loaded error: " + throwable.getMessage())));
@@ -133,17 +137,16 @@ public class WeatherMapViewModel extends ViewModel implements MapContract.BaseMa
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     public void registerReceiver() {
         logger.log("ViewModel registerReceiver()");
-        if(connectivityDisposable.size() == 0){
+        if (connectivityDisposable.size() == 0) {
             subscribeToConnectivityChange();
         }
-        IntentFilter filter = new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE");
-        App.getInstance().getAppContext().registerReceiver(receiver, filter);
+        App.getInstance().getAppContext().registerReceiver(networkStatusChangeReceiver, networkStatusChangeReceiver.getIntentFilter());
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
     public void unregisterReceiver() {
         logger.log("ViewModel unregisterReceiver()");
-        App.getInstance().getAppContext().unregisterReceiver(receiver);
+        App.getInstance().getAppContext().unregisterReceiver(networkStatusChangeReceiver);
     }
 
     @Override

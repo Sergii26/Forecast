@@ -58,6 +58,7 @@ public class DetailFragment extends MviFragment<DetailScreenState, DetailContrac
                 .detailFragmentModule(new DetailFragmentModule())
                 .build()
                 .injectDetailFragment(this);
+        viewModel = new ViewModelProvider(this, viewModelFactory).get(DetailViewModel.class);
     }
 
     @Nullable
@@ -76,13 +77,12 @@ public class DetailFragment extends MviFragment<DetailScreenState, DetailContrac
         rvDetail.setAdapter(adapter);
         rvDetail.setLayoutManager(new LinearLayoutManager(getContext(), HORIZONTAL, false));
         binding.setCityName(getArguments().getString(KEY_CITY_NAME));
-        viewModel = new ViewModelProvider(this, viewModelFactory).get(DetailViewModel.class);
         viewModel.downloadCity(String.valueOf(getArguments().getInt(KEY_CITY_ID)));
         viewModel.getStateHolderObservable().observe(getViewLifecycleOwner(), detailScreenState -> {
             logger.log("DetailFragment onStateChange()");
             detailScreenState.visit(DetailFragment.this);
         });
-        requireActivity().getOnBackPressedDispatcher().addCallback(this, callback);
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), callback);
     }
 
     @Override
@@ -97,7 +97,7 @@ public class DetailFragment extends MviFragment<DetailScreenState, DetailContrac
 
     @Override
     public void setListToAdapter(List<City> weatherLIst) {
-        binding.setCity(weatherLIst.get(0));
+        binding.setCity(weatherLIst.get(1));
         adapter.setCities(weatherLIst);
     }
 
