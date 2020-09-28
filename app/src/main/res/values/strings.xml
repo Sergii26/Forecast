@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name">Forecast</string>
+    <string name="tv_city_name">City name</string>
+    <string name="weather_icon">weather description icon</string>
+    <string name="empty_string" />
+    <string name="max_temp">Max Temp</string>
+    <string name="min_temp">Min Temp</string>
+    <string name="time_label">Time</string>
+    <string name="date_label">Day of week</string>
+    <string name="wind_label">Wind, m/s</string>
+    <string name="pressure_label">Pressure, hPa</string>
+    <string name="humidity_label">Humidity, %</string>
+    <string name="rain_label">Rain, mm/3h</string>
+    <string name="permission_denied">Permission is denied. Without it permission the application can`t find you.</string>
+    <string name="detail_error_state">Error. Try again later.</string>
 </resources>
