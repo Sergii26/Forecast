@@ -7,6 +7,7 @@ import com.practice.forecast.ui.splash.SplashFragmentModule;
 import com.practice.weathermodel.location_api.LocationSupplier;
 import com.practice.weathermodel.network_api.NetworkClient;
 import com.practice.weathermodel.prefs.Prefs;
+import com.practice.weathermodel.receiver.NetworkReceiver;
 import com.practice.weathermodel.utils.Utils;
 
 import javax.inject.Singleton;
@@ -30,4 +31,6 @@ public interface AppComponent {
    Prefs providePrefs();
 
    Utils provideUtils();
+
+   NetworkReceiver provideNetworkReceiver();
 }

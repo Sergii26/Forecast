@@ -1,20 +1,25 @@
 package com.practice.forecast.ui.map;
 
+import android.content.IntentFilter;
+
 import com.google.android.gms.maps.model.LatLng;
+import com.practice.forecast.App;
 import com.practice.weathermodel.location_api.LocationSupplier;
 import com.practice.weathermodel.logger.ILog;
 import com.practice.weathermodel.network_api.NetworkClient;
 import com.practice.weathermodel.pojo.City;
 import com.practice.weathermodel.prefs.Prefs;
+import com.practice.weathermodel.receiver.NetworkReceiver;
 import com.practice.weathermodel.utils.Utils;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.OnLifecycleEvent;
 import androidx.lifecycle.ViewModel;
-import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
@@ -27,18 +32,22 @@ public class WeatherMapViewModel extends ViewModel implements MapContract.BaseMa
     private final MutableLiveData<LatLng> currentLocation = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isConnected = new MutableLiveData<>();
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
+    private final CompositeDisposable connectivityDisposable = new CompositeDisposable();
     private final NetworkClient networkClient;
     private final LocationSupplier locationClient;
     private final ILog logger;
     private final Prefs prefs;
     private final Utils utils;
+    private final NetworkReceiver receiver;
 
-    public WeatherMapViewModel(NetworkClient networkClient, LocationSupplier locationClient, ILog logger, Prefs prefs, Utils utils) {
+    public WeatherMapViewModel(NetworkClient networkClient, LocationSupplier locationClient, ILog logger,
+                               Prefs prefs, Utils utils, NetworkReceiver receiver) {
         this.networkClient = networkClient;
         this.locationClient = locationClient;
         this.logger = logger;
         this.prefs = prefs;
         this.utils = utils;
+        this.receiver = receiver;
     }
 
     @Override
@@ -56,11 +65,10 @@ public class WeatherMapViewModel extends ViewModel implements MapContract.BaseMa
         return isConnected;
     }
 
-    @Override
-    public void onConnectivityChange(Observable<Integer> connectivityChangeObservable) {
-        compositeDisposable.add(connectivityChangeObservable.subscribe(integer -> isConnected.setValue(utils.isConnectedToNetwork()),
-                throwable -> logger.log("WeatherMapViewModel onConnectivityChange() onError: " + throwable.getMessage())));
 
+    private void subscribeToConnectivityChange() {
+        connectivityDisposable.add(receiver.getConnectivityChangeObservable().subscribe(integer -> isConnected.setValue(utils.isConnectedToNetwork()),
+                throwable -> logger.log("WeatherMapViewModel onConnectivityChange() onError: " + throwable.getMessage())));
     }
 
     @Override
@@ -68,7 +76,7 @@ public class WeatherMapViewModel extends ViewModel implements MapContract.BaseMa
         if(!hasPermission){
             return;
         }
-        if (prefs.getCoordinates().equals(EMPTY_STRING)) {
+        if (EMPTY_STRING.equals(prefs.getCoordinates())) {
                 compositeDisposable.add(locationClient.getLastLocationObservable()
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
@@ -122,9 +130,26 @@ public class WeatherMapViewModel extends ViewModel implements MapContract.BaseMa
         prefs.putCoordinates(convertLatLngToString(location));
     }
 
+    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
+    public void registerReceiver() {
+        logger.log("ViewModel registerReceiver()");
+        if(connectivityDisposable.size() == 0){
+            subscribeToConnectivityChange();
+        }
+        IntentFilter filter = new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE");
+        App.getInstance().getAppContext().registerReceiver(receiver, filter);
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+    public void unregisterReceiver() {
+        logger.log("ViewModel unregisterReceiver()");
+        App.getInstance().getAppContext().unregisterReceiver(receiver);
+    }
+
     @Override
     protected void onCleared() {
         super.onCleared();
         compositeDisposable.clear();
+        connectivityDisposable.clear();
     }
 }

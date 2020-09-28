@@ -23,6 +23,7 @@ public class MapFragmentModule {
         return new WeatherViewModelFactory(new WeatherMapViewModel(appComponent.provideNetworkClient(),
                 appComponent.provideLocationSupplier(), Logger.withTag("MyLog"),
                 appComponent.providePrefs(),
-                appComponent.provideUtils()));
+                appComponent.provideUtils(),
+                appComponent.provideNetworkReceiver()));
     }
 }

@@ -1,7 +1,6 @@
 package com.practice.forecast.ui.map;
 
 import android.Manifest;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -21,7 +20,6 @@ import com.practice.forecast.R;
 import com.practice.forecast.ui.arch.mvvm.MvvmFragment;
 import com.practice.weathermodel.logger.ILog;
 import com.practice.weathermodel.logger.Logger;
-import com.practice.weathermodel.receiver.NetworkConnectionReceiver;
 
 import java.util.Objects;
 
@@ -49,11 +47,10 @@ public class MapFragment extends MvvmFragment<MapContract.Host> implements OnMap
     private final BehaviorSubject<String> coordinatesObservable = BehaviorSubject.createDefault("");
     private final CompositeDisposable disposable = new CompositeDisposable();
     private final CityListAdapter adapter = new CityListAdapter();
-    private final NetworkConnectionReceiver receiver = new NetworkConnectionReceiver();
     private final OnBackPressedCallback callback = new OnBackPressedCallback(true) {
         @Override
         public void handleOnBackPressed() {
-            Objects.requireNonNull(getActivity()).finish();
+            if(hasCallBack()) getCallBack().closeApp();
         }
     };
 
@@ -110,9 +107,9 @@ public class MapFragment extends MvvmFragment<MapContract.Host> implements OnMap
                 mapView.setVisibility(View.GONE);
             }
         });
-        viewModel.onConnectivityChange(receiver.getConnectivityChangeObservable());
         viewModel.showCities(coordinatesObservable);
         requireActivity().getOnBackPressedDispatcher().addCallback(this, callback);
+        getViewLifecycleOwner().getLifecycle().addObserver(viewModel);
     }
 
     @Override
@@ -134,15 +131,12 @@ public class MapFragment extends MvvmFragment<MapContract.Host> implements OnMap
     public void onResume() {
         super.onResume();
         mapView.onResume();
-        registerReceiver();
-
     }
 
     @Override
     public void onPause() {
         super.onPause();
         mapView.onPause();
-        requireActivity().unregisterReceiver(receiver);
     }
 
     @Override
@@ -206,11 +200,6 @@ public class MapFragment extends MvvmFragment<MapContract.Host> implements OnMap
                 + String.valueOf(googleMap.getProjection().getVisibleRegion().latLngBounds.northeast.latitude)
                 + ","
                 + WEATHER_API_ZOOM_SIZE;
-    }
-
-    private void registerReceiver() {
-        IntentFilter filter = new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE");
-        requireActivity().registerReceiver(receiver, filter);
     }
 
     @Override

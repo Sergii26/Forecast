@@ -65,7 +65,7 @@ dependencies {
 
     implementation 'com.android.support:multidex:1.0.3'
 
-    implementation 'com.github.Sergii26:weather-model:1.0.9'
+    implementation 'com.github.Sergii26:weather-model:1.0.13'
 
     def lifecycle_version = "2.2.0"
     def arch_version = "2.1.0"
@@ -90,7 +90,6 @@ dependencies {
     implementation 'com.google.dagger:dagger-android-support:2.28.1' // if you use the support libraries
     annotationProcessor 'com.google.dagger:dagger-android-processor:2.28.1'
     annotationProcessor 'com.google.dagger:dagger-compiler:2.28.1'
-
 
 }
 

@@ -45,6 +45,11 @@ public class MainActivity extends AppCompatActivity implements SplashContract.Ho
     }
 
     @Override
+    public void closeApp() {
+        finish();
+    }
+
+    @Override
     public void openMapFragment() {
         boolean isNull = navController == null;
         logger.log("MainActivity navController is null: " + isNull);

@@ -7,6 +7,8 @@ import com.practice.weathermodel.network_api.ApiClient;
 import com.practice.weathermodel.network_api.NetworkClient;
 import com.practice.weathermodel.prefs.Prefs;
 import com.practice.weathermodel.prefs.PrefsImpl;
+import com.practice.weathermodel.receiver.NetworkConnectionReceiver;
+import com.practice.weathermodel.receiver.NetworkReceiver;
 import com.practice.weathermodel.utils.AndroidUtils;
 import com.practice.weathermodel.utils.Utils;
 
@@ -39,4 +41,8 @@ public class AppModule {
         return new AndroidUtils(App.getInstance().getAppContext());
     }
 
+    @Provides
+    public NetworkReceiver provideNetworkReceiver(){
+        return new NetworkConnectionReceiver();
+    }
 }
