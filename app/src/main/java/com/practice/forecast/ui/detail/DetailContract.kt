@@ -1,32 +1,24 @@
-package com.practice.forecast.ui.detail;
+package com.practice.forecast.ui.detail
 
-import com.practice.forecast.ui.arch.Contract;
-import com.practice.forecast.ui.arch.mvi.ScreenState;
-import com.practice.weathermodel.pojo.City;
+import androidx.lifecycle.LiveData
+import com.practice.forecast.ui.arch.Contract
+import com.practice.weathermodel.pojo.City
 
-import java.util.List;
-
-import androidx.lifecycle.LiveData;
-
-public interface DetailContract {
-
+interface DetailContract {
     interface BaseDetailViewModel {
-
-        void downloadCity(String cityId);
-
-        LiveData<List<City>> getCityObservable();
-        LiveData<DetailScreenState> getStateHolderObservable();
+        fun downloadCity(cityId: String?)
+        fun getCityObservable(): LiveData<List<City>>
+        fun getStateHolderObservable(): LiveData<DetailScreenState?>
     }
 
-    interface View extends Contract.View {
-        void showProgress();
-        void hideProgress();
-        void setListToAdapter(List<City> weatherLIst);
-        void showError();
+    interface View : Contract.View {
+        fun showProgress()
+        fun hideProgress()
+        fun setListToAdapter(weatherLIst: List<City?>?)
+        fun showError()
     }
 
-    interface Host extends Contract.Host {
-        void backToMapFragment();
-
+    interface Host : Contract.Host {
+        fun backToMapFragment()
     }
 }

@@ -1,8 +1,9 @@
-package com.practice.forecast.ui.detail;
+package com.practice.forecast.ui.detail
 
-import dagger.Component;
+import dagger.Component
 
-@Component(modules = {DetailFragmentModule.class})
-public interface DetailFragmentComponent {
-    void injectDetailFragment(DetailFragment fragment);
+
+@Component(modules = [DetailFragmentModule::class])
+interface DetailFragmentComponent {
+    fun injectDetailFragment(fragment: DetailFragment?)
 }

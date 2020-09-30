@@ -1,32 +1,23 @@
-package com.practice.forecast;
+package com.practice.forecast
 
-import android.content.Context;
+import android.app.Application
+import android.content.Context
+import androidx.multidex.MultiDexApplication
 
-import androidx.multidex.MultiDexApplication;
+class App : MultiDexApplication() {
+    var appComponent: AppComponent? = null
+        protected set
+    val appContext: Context
+        get() = this.applicationContext
 
-public class App extends MultiDexApplication {
-
-    private static App instance;
-    protected AppComponent appComponent;
-
-
-    public static App getInstance() {
-        return instance;
+    override fun onCreate() {
+        super.onCreate()
+        instance = this
+        appComponent = DaggerAppComponent.create()
     }
 
-    public Context getAppContext(){
-        return this.getApplicationContext();
+    companion object {
+        var instance: App? = null
+            private set
     }
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        instance = this;
-        appComponent = DaggerAppComponent.create();
-    }
-
-    public AppComponent getAppComponent(){
-        return appComponent;
-    }
-
 }

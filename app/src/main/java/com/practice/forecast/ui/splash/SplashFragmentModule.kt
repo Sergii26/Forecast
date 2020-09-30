@@ -1,4 +1,4 @@
-package com.practice.forecast.ui.detail
+package com.practice.forecast.ui.splash
 
 import androidx.lifecycle.ViewModelProvider
 import com.practice.forecast.App
@@ -7,17 +7,16 @@ import com.practice.weathermodel.logger.Logger
 import dagger.Module
 import dagger.Provides
 
-
 @Module
-class DetailFragmentModule {
+class SplashFragmentModule {
     private val appComponent: AppComponent? = App.instance?.appComponent
 
     @Provides
-    fun provideDetailViewModelFactory(): ViewModelProvider.Factory {
-        return DetailViewModelFactory(DetailViewModel(Logger.withTag("MyLog"), appComponent!!.provideNetworkClient()))
+    fun provideSplashViewModelFactory(): ViewModelProvider.Factory {
+        return SplashViewModelFactory(SplashViewModel(Logger.withTag("MyLog")))
     }
 
     init {
-        appComponent?.injectDetailFragment(this)
+        appComponent?.injectSplashFragment(this)
     }
 }

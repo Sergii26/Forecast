@@ -1,84 +1,70 @@
-package com.practice.forecast.ui.detail;
+package com.practice.forecast.ui.detail
 
-import com.practice.weathermodel.logger.ILog;
-import com.practice.weathermodel.network_api.ApiClient;
-import com.practice.weathermodel.network_api.NetworkClient;
-import com.practice.weathermodel.pojo.City;
-import com.practice.weathermodel.pojo.Main;
-import com.practice.weathermodel.pojo.Rain;
-import com.practice.weathermodel.pojo.Weather;
-import com.practice.weathermodel.pojo.Wind;
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import com.practice.forecast.ui.detail.DetailContract.BaseDetailViewModel
+import com.practice.weathermodel.logger.ILog
+import com.practice.weathermodel.network_api.NetworkClient
+import com.practice.weathermodel.pojo.*
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
+import java.util.*
 
-import java.util.ArrayList;
-import java.util.List;
-
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.schedulers.Schedulers;
-
-public class DetailViewModel extends ViewModel implements DetailContract.BaseDetailViewModel {
-
-    private final NetworkClient networkClient = new ApiClient();
-    private final MutableLiveData<List<City>> cityObservable = new MutableLiveData<>();
-    private final CompositeDisposable compositeDisposable = new CompositeDisposable();
-    private final MutableLiveData<DetailScreenState> stateHolder = new MutableLiveData<>();
-    private final ILog logger;
-
-    public MutableLiveData<DetailScreenState> getStateHolderObservable() {
-        return stateHolder;
-    }
-
-    public DetailViewModel(ILog logger) {
-        this.logger = logger;
-    }
-
-    public MutableLiveData<List<City>> getCityObservable() {
-        return cityObservable;
-    }
-
-    public void downloadCity(String cityId){
-        logger.log("DetailViewModel downloadCity()");
-        stateHolder.setValue(DetailScreenState.createLoadingState());
+class DetailViewModel(private val logger: ILog, private val networkClient: NetworkClient) : ViewModel(), BaseDetailViewModel {
+    private val cityObservable = MutableLiveData<List<City>>()
+    private val compositeDisposable = CompositeDisposable()
+    private val stateHolderObservable = MutableLiveData<DetailScreenState?>()
+    override fun downloadCity(cityId: String?) {
+        logger.log("DetailViewModel downloadCity()")
+        stateHolderObservable.setValue(DetailScreenState.Companion.createLoadingState())
         compositeDisposable.add(networkClient.getCityWeatherById(cityId)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(response -> {
-                    final List<City> cities = response.getCities();
-                    cities.add(0, getLabelCity());
-                    stateHolder.setValue(DetailScreenState.createSetDataState(cities));
-                }, throwable -> {
-                    stateHolder.setValue(DetailScreenState.createErrorState(throwable));
-                    logger.log("DetailViewModel downloadCity() error: " + throwable.getMessage());
-                }));
+                .subscribe({ response: Response ->
+                    val cities = response.cities
+                    cities.add(0, labelCity)
+                    stateHolderObservable.setValue(DetailScreenState.Companion.createSetDataState(cities))
+                }) { throwable: Throwable ->
+                    stateHolderObservable.setValue(DetailScreenState.Companion.createErrorState(throwable))
+                    logger.log("DetailViewModel downloadCity() error: " + throwable.message)
+                })
     }
 
-    private City getLabelCity(){
-        City city = new City();
-        city.setDt(0);
-        Main main = new Main();
-        Weather weather = new Weather();
-        weather.setIcon("label");
-        Wind wind = new Wind();
-        wind.setSpeed(-1);
-        List<Weather> weatherListForCity = new ArrayList<>();
-        weatherListForCity.add(0, weather);
-        city.setWeather(weatherListForCity);
-        city.setWind(wind);
-        main.setTemp(-100);
-        main.setPressure(-1);
-        main.setHumidity(-1);
-        Rain rain = new Rain();
-        rain.set3h(-1);
-        city.setRain(rain);
-        city.setMain(main);
-        return city;
+    override fun getCityObservable(): LiveData<List<City>> {
+        return cityObservable
     }
 
-    @Override
-    protected void onCleared() {
-        super.onCleared();
-        compositeDisposable.clear();
+    override fun getStateHolderObservable(): LiveData<DetailScreenState?> {
+        return stateHolderObservable
+    }
+
+    private val labelCity: City
+        get() {
+            val city = City()
+            city.dt = 0
+            val main = Main()
+            val weather = Weather()
+            weather.icon = "label"
+            val wind = Wind()
+            wind.speed = -1.0
+            val weatherListForCity: MutableList<Weather> = ArrayList()
+            weatherListForCity.add(0, weather)
+            city.weather = weatherListForCity
+            city.wind = wind
+            main.temp = -100.0
+            main.pressure = -1
+            main.humidity = -1
+            val rain = Rain()
+            rain.set3h(-1.0)
+            city.rain = rain
+            city.main = main
+            return city
+        }
+
+    override fun onCleared() {
+        super.onCleared()
+        compositeDisposable.clear()
     }
 }
