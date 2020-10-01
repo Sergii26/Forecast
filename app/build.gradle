@@ -72,7 +72,7 @@ dependencies {
 
     implementation 'com.android.support:multidex:1.0.3'
 
-    implementation 'com.github.Sergii26:weather-model:1.0.17'
+    implementation 'com.github.Sergii26:weather-model:1.0.20'
 
     def lifecycle_version = "2.2.0"
     def arch_version = "2.1.0"
