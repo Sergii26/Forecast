@@ -6,7 +6,7 @@ import androidx.multidex.MultiDexApplication
 
 class App : MultiDexApplication() {
     var appComponent: AppComponent? = null
-        protected set
+         set
     val appContext: Context
         get() = this.applicationContext
 

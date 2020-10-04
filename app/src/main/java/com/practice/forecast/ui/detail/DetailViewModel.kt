@@ -16,6 +16,7 @@ class DetailViewModel(private val logger: ILog, private val networkClient: Netwo
     private val cityObservable = MutableLiveData<List<City>>()
     private val compositeDisposable = CompositeDisposable()
     private val stateHolderObservable = MutableLiveData<DetailScreenState?>()
+
     override fun downloadCity(cityId: String?) {
         logger.log("DetailViewModel downloadCity()")
         stateHolderObservable.setValue(DetailScreenState.Companion.createLoadingState())

@@ -1,11 +1,13 @@
 package com.practice.forecast.ui.detail
 
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LiveData
 import com.practice.forecast.ui.arch.Contract
 import com.practice.weathermodel.pojo.City
 
 interface DetailContract {
-    interface BaseDetailViewModel {
+    interface BaseDetailViewModel: LifecycleObserver {
         fun downloadCity(cityId: String?)
         fun getCityObservable(): LiveData<List<City>>
         fun getStateHolderObservable(): LiveData<DetailScreenState?>

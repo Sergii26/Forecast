@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.annotation.VisibleForTesting
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -16,6 +17,7 @@ import com.practice.forecast.databinding.FragmentDetailBinding
 import com.practice.forecast.ui.arch.mvi.MviFragment
 import com.practice.forecast.ui.detail.DetailContract.BaseDetailViewModel
 import com.practice.forecast.ui.detail.DetailFragment
+import com.practice.forecast.ui.map.CityListAdapter
 import com.practice.forecast.ui.map.WeatherMapViewModel
 import com.practice.forecast.ui.map.WeatherViewModelFactory
 import com.practice.forecast.ui.splash.SplashViewModel
@@ -97,6 +99,11 @@ class DetailFragment : MviFragment<DetailScreenState?, DetailContract.Host?>(), 
 
     override fun showError() {
         Toast.makeText(activity, R.string.detail_error_state, Toast.LENGTH_SHORT).show()
+    }
+
+    @VisibleForTesting
+    fun getRecyclerAdapter(): DetailRecyclerAdapter {
+        return adapter;
     }
 
     companion object {

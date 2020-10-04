@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.annotation.VisibleForTesting
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
@@ -20,16 +21,9 @@ import com.google.android.gms.maps.model.LatLng
 import com.practice.forecast.R
 import com.practice.forecast.ui.arch.mvvm.MvvmFragment
 import com.practice.forecast.ui.map.MapContract.BaseMapViewModel
-import com.practice.forecast.ui.splash.SplashViewModel
-import com.practice.forecast.ui.splash.SplashViewModelFactory
-import com.practice.weathermodel.location_api.LocationClient
 import com.practice.weathermodel.logger.ILog
 import com.practice.weathermodel.logger.Logger
-import com.practice.weathermodel.network_api.ApiClient
 import com.practice.weathermodel.pojo.City
-import com.practice.weathermodel.prefs.PrefsImpl
-import com.practice.weathermodel.receiver.NetworkStatusChangeReceiver
-import com.practice.weathermodel.utils.AndroidUtils
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.BehaviorSubject
 import javax.inject.Inject
@@ -107,7 +101,7 @@ class MapFragment : MvvmFragment<MapContract.Host?>(), OnMapReadyCallback, OnCam
         super.onStart()
         mapView.onStart()
         if (disposable.size() == 0) {
-            logger.log("MapFragment onStarT() adapter == null: " + (adapter==null))
+            logger.log("MapFragment onStarT() adapter == null: " + (adapter == null))
             disposable.add(adapter.clicksObservable.subscribe({ city: City? ->
                 logger.log("MapFragment onStarT() clickObservable() onSuccess")
                 viewModel!!.saveLocation(googleMap!!.projection.visibleRegion.latLngBounds.center)
@@ -157,7 +151,7 @@ class MapFragment : MvvmFragment<MapContract.Host?>(), OnMapReadyCallback, OnCam
         googleMap.setMinZoomPreference(8f)
     }
 
-    fun setCameraPosition(latLng: LatLng?) {
+    private fun setCameraPosition(latLng: LatLng?) {
         logger.log("MapFragment setCameraPosition()")
         val cameraPosition = CameraPosition.Builder()
                 .target(latLng).zoom(7f).build()
@@ -165,7 +159,7 @@ class MapFragment : MvvmFragment<MapContract.Host?>(), OnMapReadyCallback, OnCam
                 .newCameraPosition(cameraPosition))
     }
 
-    fun initMap() {
+    private fun initMap() {
         try {
             MapsInitializer.initialize(requireContext())
         } catch (e: Exception) {
@@ -174,7 +168,7 @@ class MapFragment : MvvmFragment<MapContract.Host?>(), OnMapReadyCallback, OnCam
         mapView.getMapAsync(this)
     }
 
-    val coordinatesForRequest: String
+    private val coordinatesForRequest: String
         get() = (googleMap!!.projection.visibleRegion.latLngBounds.southwest.longitude.toString() + ","
                 + googleMap!!.projection.visibleRegion.latLngBounds.southwest.latitude.toString() + ","
                 + googleMap!!.projection.visibleRegion.latLngBounds.northeast.longitude.toString() + ","
@@ -198,7 +192,7 @@ class MapFragment : MvvmFragment<MapContract.Host?>(), OnMapReadyCallback, OnCam
         }
     }
 
-    fun requestPermission() {
+    private fun requestPermission() {
         logger.log("MapFragment requestPermission()")
         requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), MY_PERMISSIONS_REQUEST_LOCATION)
     }
@@ -209,6 +203,11 @@ class MapFragment : MvvmFragment<MapContract.Host?>(), OnMapReadyCallback, OnCam
             return activity != null && ContextCompat.checkSelfPermission(requireActivity(),
                     Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
         }
+
+    @VisibleForTesting
+    fun getRecyclerAdapter(): CityListAdapter {
+        return adapter;
+    }
 
     companion object {
         private const val WEATHER_API_ZOOM_SIZE = "17"
