@@ -1,3 +1,3 @@
 package com.practice.forecast.secrets
 
-val secret = ""
+val secret = "sdgdafgdfg_sdfgsgdfdge"
