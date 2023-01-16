@@ -6,6 +6,7 @@ import com.practice.forecast.ui.arch.Contract
 import java.lang.reflect.ParameterizedType
 
 open class MvvmFragment<Host : Contract.Host?> : Fragment() {
+    val newOne = ""
     /**
      * get the current fragment call back
      *
