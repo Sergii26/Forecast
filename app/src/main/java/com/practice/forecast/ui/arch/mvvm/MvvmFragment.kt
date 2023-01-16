@@ -7,6 +7,8 @@ import java.lang.reflect.ParameterizedType
 
 open class MvvmFragment<Host : Contract.Host?> : Fragment() {
     val newOne = ""
+    val newOne1 = ""
+
     /**
      * get the current fragment call back
      *
